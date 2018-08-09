@@ -11,9 +11,6 @@ import UIKit
 public protocol CalendarDateRangePickerViewControllerDelegate {
     func didCancelPickingDateRange()
     func didPickDateRange(startDate: Date!, endDate: Date!)
-    func todayButtonTapped()
-    func thisWeekButtonTapped()
-    func thisMonthButtonTapped()
 }
 
 public class CalendarDateRangePickerViewController: UICollectionViewController {
@@ -58,30 +55,32 @@ public class CalendarDateRangePickerViewController: UICollectionViewController {
         
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(CalendarDateRangePickerViewController.didTapCancel))
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(CalendarDateRangePickerViewController.didTapDone))
+        self.navigationItem.leftBarButtonItem?.tintColor = selectedColor
+        self.navigationItem.rightBarButtonItem?.tintColor = selectedColor
         self.navigationItem.rightBarButtonItem?.isEnabled = selectedStartDate != nil && selectedEndDate != nil
     }
     
     public func headerView() {
         let mView = UIView()
         mView.backgroundColor = selectedColor
-        mView.frame = CGRect(x: 0, y: view.bounds.height - 65, width: view.frame.width, height: 65)
+        mView.frame = CGRect(x: 0, y: view.bounds.height - 75, width: view.frame.width, height: 75)
         
         let buttonWidth =  Int( mView.frame.width / 3 - 15 )
         let buttonHeight = 35
         
         let button = UIButton()
         button.setTitle("TODAY", for: .normal)
-        button.frame = CGRect(x: 10, y: 15, width: buttonWidth, height: buttonHeight )
+        button.frame = CGRect(x: 10, y: 20, width: buttonWidth, height: buttonHeight )
         button.addTarget(self, action: #selector(CalendarDateRangePickerViewController.todayButtonTapped), for: .touchUpInside)
         
         let button1 = UIButton()
-        button1.setTitle("THIS WEEK", for: .normal)
-        button1.frame = CGRect(x: buttonWidth + 20 , y: 15, width: buttonWidth, height: buttonHeight)
+        button1.setTitle("LAST WEEK", for: .normal)
+        button1.frame = CGRect(x: buttonWidth + 20 , y: 20, width: buttonWidth, height: buttonHeight)
         button1.addTarget(self, action: #selector(CalendarDateRangePickerViewController.thisWeekButtonTapped), for: .touchUpInside)
         
         let button2 = UIButton()
         button2.setTitle("THIS MONTH", for: .normal)
-        button2.frame = CGRect(x: buttonWidth * 2 + 30 , y: 15, width: buttonWidth, height: buttonHeight )
+        button2.frame = CGRect(x: buttonWidth * 2 + 30 , y: 20, width: buttonWidth, height: buttonHeight )
         button2.addTarget(self, action: #selector(CalendarDateRangePickerViewController.thisMonthButtonTapped), for: .touchUpInside)
         
         let buttons = [button, button1, button2]
@@ -99,15 +98,15 @@ public class CalendarDateRangePickerViewController: UICollectionViewController {
     }
     
     @objc func todayButtonTapped() {
-        delegate.todayButtonTapped()
+        delegate.didPickDateRange(startDate: Date(), endDate: Date())
     }
     
     @objc func thisWeekButtonTapped() {
-        delegate.thisWeekButtonTapped()
+        delegate.didPickDateRange(startDate: Date().lastWeek.startOfWeek() , endDate: Date().lastWeek.endOfWeek())
     }
     
     @objc func thisMonthButtonTapped() {
-        delegate.thisMonthButtonTapped()
+        delegate.didPickDateRange(startDate: Date().startOfMonth(), endDate: Date().endOfMonth())
     }
     
     @objc func didTapCancel() {
@@ -305,3 +304,35 @@ extension CalendarDateRangePickerViewController {
     }
     
 }
+
+extension Date {
+    var lastWeek: Date {
+        return Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date())!
+    }
+    
+    var noon: Date {
+        return Calendar.current.date(bySettingHour: 12, minute: 0, second: 0, of: self)!
+    }
+    
+    func startOfMonth() -> Date {
+        return Calendar.current.date(from: Calendar.current.dateComponents([.year, .month], from: Calendar.current.startOfDay(for: self)))!
+    }
+    
+    func endOfMonth() -> Date {
+        return Calendar.current.date(byAdding: DateComponents(month: 1, day: -1), to: self.startOfMonth())!
+    }
+    
+    func startOfWeek() -> Date? {
+        let gregorian = Calendar(identifier: .gregorian)
+        guard let sunday = gregorian.date(from: gregorian.dateComponents([.yearForWeekOfYear, .weekOfYear], from: self)) else { return nil }
+        return gregorian.date(byAdding: .day, value: 1, to: sunday)
+    }
+    
+    func endOfWeek() -> Date? {
+        let gregorian = Calendar(identifier: .gregorian)
+        guard let sunday = gregorian.date(from: gregorian.dateComponents([.yearForWeekOfYear, .weekOfYear], from: self)) else { return nil }
+        return gregorian.date(byAdding: .day, value: 7, to: sunday)
+    }
+    
+}
+
