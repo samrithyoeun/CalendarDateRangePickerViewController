@@ -36,8 +36,12 @@ class CalendarDateRangePickerCell: UICollectionViewCell {
     func initLabel() {
         label = UILabel(frame: frame)
         label.center = CGPoint(x: frame.size.width / 2, y: frame.size.height / 2)
-        label.font = UIFont(name: "HelveticaNeue", size: 15.0)
-        label.textColor = UIColor.darkGray
+        if #available(iOS 8.2, *) {
+            label.font = UIFont.systemFont(ofSize: 17.0, weight: .semibold)
+        } else {
+            // Fallback on earlier versions
+        }
+        label.textColor = UIColor.black
         label.textAlignment = NSTextAlignment.center
         self.addSubview(label)
     }
@@ -111,6 +115,12 @@ class CalendarDateRangePickerCell: UICollectionViewCell {
     func highlight() {
         self.backgroundColor = highlightedColor
         label.textColor = UIColor.white
+    }
+    
+    func singleDatehighlight() {
+        self.backgroundColor = highlightedColor
+        label.textColor = UIColor.white
+        self.layer.cornerRadius = self.frame.height / 2
     }
     
     func disable() {
